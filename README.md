@@ -22,7 +22,7 @@
 
 ### Getting started
  1. Open terminal
- 2. Clone the repo: `git clone git@github.com:SlavikDMI/massTokenSend.git`
+ 2. Clone the repo: `git clone https://github.com/SlavikDMI/massTokenSend.git`
  3. Run `npm i` to install node packages.
  4. Run `npx hardhat node`
  5. Run in other terminal tab `npx hardhat test`
