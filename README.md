@@ -24,5 +24,6 @@
  1. Open terminal
  2. Clone the repo: `git clone https://github.com/SlavikDMI/massTokenSend.git`
  3. Run `npm i` to install node packages.
- 4. Run `npx hardhat node`
- 5. Run in other terminal tab `npx hardhat test`
+ 4. Register at https://alchemyapi.io and paste your api key into hardhat.config.js
+ 5. Run `npx hardhat node`
+ 6. Run in other terminal tab `npx hardhat test`
