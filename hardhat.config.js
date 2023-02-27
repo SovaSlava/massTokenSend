@@ -1,5 +1,8 @@
-require("@nomiclabs/hardhat-waffle");
+require("@nomiclabs/hardhat-ethers");
+require("@nomicfoundation/hardhat-chai-matchers");
+require("@nomicfoundation/hardhat-network-helpers");
 require("solidity-coverage");
+require('dotenv').config();
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -17,12 +20,13 @@ task("accounts", "Prints the list of accounts", async () => {
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
+
 module.exports = {
-  solidity: "0.8.1",
+  solidity: "0.8.17",
   networks: {
         hardhat: {
             forking: {
-                url: "https://eth-mainnet.alchemyapi.io/v2/YOUR_KEY",
+                url: process.env.MAINNET_RPC_URL,
                 blockNumber: 12562877
             }
 
