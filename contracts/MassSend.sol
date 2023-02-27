@@ -44,7 +44,11 @@ contract MassSend {
             mstore(add(data, 0x04), calldataload(rOffs))
             mstore(add(data, 0x24), calldataload(aOffs))
 
-            let success := call(gas(), _token, 0, data, 0x44, 0x0, 0x20)
+            let success := and(
+                or(and(eq(mload(0), 1), gt(returndatasize(), 31)), iszero(returndatasize())),
+                call(gas(), _token, 0, data, 0x44, 0x0, 0x20)
+            )
+
             if iszero(success) {
               returndatacopy(add(data, 0x04), 0, returndatasize())
               revert(add(data, 0x04), returndatasize())
