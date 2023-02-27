@@ -22,10 +22,10 @@ contract massSend {
   function send(address[] calldata _receivers, uint256[] calldata _amounts, IERC20 token) external onlyOwner {
     if(_receivers.length != _amounts.length) revert WrongArraysLength();
     unchecked {
-        for(uint i = 0; i< _receivers.length; i++) {
-          token.transfer(_receivers[i], _amounts[i]);
-        }
+      for(uint i = 0; i< _receivers.length; i++) {
+        token.transfer(_receivers[i], _amounts[i]);
       }
+    }
   }
 
   function setOwner(address _owner) external onlyOwner {
