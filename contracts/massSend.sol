@@ -19,11 +19,11 @@ contract massSend {
     owner = msg.sender;
   }
 
-  function send(address[] calldata _receivers, uint256[] calldata _amounts, IERC20 token) external onlyOwner {
+  function send(address[] calldata _receivers, uint256[] calldata _amounts, IERC20 _token) external onlyOwner {
     if(_receivers.length != _amounts.length) revert WrongArraysLength();
     unchecked {
       for(uint256 i = 0; i < _receivers.length; i++) {
-        token.transfer(_receivers[i], _amounts[i]);
+        _token.transfer(_receivers[i], _amounts[i]);
       }
     }
   }
