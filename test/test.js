@@ -1,6 +1,7 @@
 const { expect } = require('chai');
 const { ethers } = require('hardhat');
 const { loadFixture } = require('@nomicfoundation/hardhat-network-helpers');
+const { profileEVM } = require('@1inch/solidity-utils');
 
 const USDTData = require('./USDT.js');
 const massSendData = require('./massSend.js');
