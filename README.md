@@ -8,10 +8,10 @@
 
 | Transfer to         | Usualy gas amount | Gas amount when use massSend contract | Percentage
 | :------------- |-------------:| -----:| -----:|
-| 2 new addresses    | 126034 | 99260 | 21% |
-| 4 new addresses    | 252068 | 155990 | 38% |
-| 2 addresses with token balance | 91834 | 65060 | 29% |
-| 4 addresses with token balance | 183668 | 87590 | 52% |
+| 2 new addresses    | 126034 | 99020 | 21% |
+| 4 new addresses    | 252068 | 155510 | 38% |
+| 2 addresses with token balance | 91834 | 64820 | 29% |
+| 4 addresses with token balance | 183668 | 87110 | 52% |
 
 
 
