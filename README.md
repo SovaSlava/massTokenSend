@@ -10,10 +10,10 @@ If you want to send ERC-20 tokens to many addresses, saving on gas, use my smart
 
 | Transfer to                    | Usualy gas amount | Gas amount when use massSend contract | Percentage |
 | :----------------------------- | ----------------: | ------------------------------------: | ---------: |
-| 2 new addresses                |            126034 |                                 97272 |        22% |
-| 4 new addresses                |            252068 |                                152050 |        39% |
-| 2 addresses with token balance |             91834 |                                 63072 |        31% |
-| 4 addresses with token balance |            183668 |                                 83650 |        54% |
+| 2 new addresses                |            126034 |                                 97344 |        22% |
+| 4 new addresses                |            252068 |                                152158 |        39% |
+| 2 addresses with token balance |             91834 |                                 63144 |        31% |
+| 4 addresses with token balance |            183668 |                                 83758 |        54% |
 
 #### Example:
 

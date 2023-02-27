@@ -4,7 +4,6 @@ const { loadFixture } = require('@nomicfoundation/hardhat-network-helpers');
 const { profileEVM } = require('@1inch/solidity-utils');
 
 const USDTData = require('./USDT.js');
-const massSendData = require('./massSend.js');
 
 async function logGasCost(label, tx) {
     const { cumulativeGasUsed } = await tx.wait();
@@ -27,7 +26,7 @@ describe('MassSend', () => {
     async function initContracts() {
         const USDT = new ethers.Contract(USDTData.address, USDTData.abi, signer0);
 
-        const MassSend = await ethers.getContractFactory('massSend');
+        const MassSend = await ethers.getContractFactory('MassSend');
         const massSend = await MassSend.deploy();
         await massSend.deployed();
 
