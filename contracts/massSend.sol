@@ -1,9 +1,8 @@
-//SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.17;
+// SPDX-License-Identifier: MIT
 
-interface IERC20 {
-  function transfer(address _to, uint256 _amount) external;
-}
+pragma solidity 0.8.19;
+
+import { IERC20 } from './interfaces/IERC20.sol';
 
 contract massSend {
   error WrongArraysLength();
@@ -20,14 +19,14 @@ contract massSend {
     owner = msg.sender;
   }
 
-  function send(address[] memory _receivers, uint[] memory _amounts, IERC20 token) public onlyOwner {
+  function send(address[] calldata _receivers, uint256[] calldata _amounts, IERC20 token) external onlyOwner {
     if(_receivers.length != _amounts.length) revert WrongArraysLength();
     for(uint i = 0; i< _receivers.length; i++) {
       token.transfer(_receivers[i], _amounts[i]);
     }
   }
 
-  function setOwner(address _owner) public onlyOwner {
+  function setOwner(address _owner) external onlyOwner {
     owner = _owner;
   }
 }

@@ -6,12 +6,12 @@
 2. Transfer the required number of tokens from contract(For example: USDT - 0xdac17f958d2ee523a2206206994597c13d831ec7) to massSend contract
 3. Call `send` function with arguments: address[] receivers, uint[] amounts, address contractAdress
 
-| Transfer to         | Usualy gas amount | Gas amount when use massSend contract |
-| :------------- |-------------:| -----:|
-| 2 new addresses    | 126346 | 100949 |
-| 3 new addresses    | 189519 | 129791 |
-| 2 addresses with token balance | 92146 | 66749 |
-| 3 addresses with token balance | 138219 | 78491 |
+| Transfer to         | Usualy gas amount | Gas amount when use massSend contract | Percentage
+| :------------- |-------------:| -----:| -----:|
+| 2 new addresses    | 126034 | 99260 | 21% |
+| 4 new addresses    | 252068 | 155990 | 38% |
+| 2 addresses with token balance | 91834 | 65060 | 29% |
+| 4 addresses with token balance | 183668 | 87590 | 52% |
 
 
 

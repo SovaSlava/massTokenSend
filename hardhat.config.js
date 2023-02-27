@@ -22,7 +22,7 @@ task("accounts", "Prints the list of accounts", async () => {
  */
 
 module.exports = {
-  solidity: "0.8.17",
+  solidity: "0.8.19",
   networks: {
         hardhat: {
             forking: {
