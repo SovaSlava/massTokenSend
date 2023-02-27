@@ -2,6 +2,7 @@ require("@nomiclabs/hardhat-ethers");
 require("@nomicfoundation/hardhat-chai-matchers");
 require("@nomicfoundation/hardhat-network-helpers");
 require("solidity-coverage");
+require('hardhat-tracer');
 require('dotenv').config();
 
 // This is a sample Hardhat task. To learn how to create your own go to

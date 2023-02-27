@@ -1636,7 +1636,7 @@ ethereumjs-util@^7.1.0, ethereumjs-util@^7.1.4:
     ethereum-cryptography "^0.1.3"
     rlp "^2.2.4"
 
-ethers@5.7.2:
+ethers@5.7.2, ethers@^5.6.1:
   version "5.7.2"
   resolved "https://registry.yarnpkg.com/ethers/-/ethers-5.7.2.tgz#3a7deeabbb8c030d4126b24f84e525466145872e"
   integrity sha512-wswUsmWo1aOK8rR7DIKiWSw9DbLWe6x98Jrn8wcTflTVvaXhAMaB5zGAXy0GYQEQp9iO1iSHWVyARQm11zUtyg==
@@ -2010,6 +2010,13 @@ handlebars@^4.0.1:
     wordwrap "^1.0.0"
   optionalDependencies:
     uglify-js "^3.1.4"
+
+hardhat-tracer@2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/hardhat-tracer/-/hardhat-tracer-2.0.0.tgz#ae8a4404cc350078a61d782898c6d4d3f3abf455"
+  integrity sha512-5l/FEJe9fhoxhXqtxM/qO87ym7Er3B0lbtjunAQjKjkGJXAoD0VZzZa0axyBc1NRP6sTQvxRABa7kImOTbntXQ==
+  dependencies:
+    ethers "^5.6.1"
 
 hardhat@2.12.7:
   version "2.12.7"
