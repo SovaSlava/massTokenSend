@@ -1,83 +1,176 @@
-const { expect } = require("chai");
-const USDT = require("./USDT.js")
-const massSendData = require("./massSend.js")
+const { expect } = require('chai');
+const { ethers } = require('hardhat');
+const { loadFixture } = require('@nomicfoundation/hardhat-network-helpers');
+const { profileEVM } = require('@1inch/solidity-utils');
 
+const USDTData = require('./USDT.js');
 
-describe("MassSend", async  function() {
-    let signers;
-    let USDTContract;
-    let massSendContract;
-    let massSend;
-    let moneyBoss = "0x28C6C06298D514DB089934071355E5743BF21D60";
-    let receiver1 = "0x7aC426eE8B1aB48e160E75705A6641956E37F21A";
-    let receiver2 = "0x3c20D39a6C627326Bf034A4f7B9E83509E41afaf";
+async function logGasCost(label, tx) {
+    const { cumulativeGasUsed } = await tx.wait();
+    console.log(label, cumulativeGasUsed.toBigInt());
+    return cumulativeGasUsed.toBigInt();
+};
+
+describe('MassSend', () => {
+    let signer0, signer1;
+    const moneyBoss = '0x28C6C06298D514DB089934071355E5743BF21D60';
+    const receiver1 = '0xdead00000000000000beaf0000000000000dead1';
+    const receiver2 = '0xdead00000000000000beaf0000000000000dead2';
+    const receiver3 = '0xdead00000000000000beaf0000000000000dead3';
+    const receiver4 = '0xdead00000000000000beaf0000000000000dead4';
 
     before(async () => {
-        let MassSend = await ethers.getContractFactory("massSend");
-        massSend = await MassSend.deploy();
+        [signer0, signer1] =  await ethers.getSigners();
+    });
+
+    async function initContracts() {
+        const USDT = new ethers.Contract(USDTData.address, USDTData.abi, signer0);
+
+        const MassSend = await ethers.getContractFactory('MassSend');
+        const massSend = await MassSend.deploy();
         await massSend.deployed();
 
-        console.log("massSend contract deployed to:", massSend.address);
-    })  
+        return { USDT, massSend };
+    };
 
-    beforeEach(async function() {
-        signers =  await ethers.getSigners();
-        USDTContract = new ethers.Contract(USDT.address, USDT.abi, signers[0]);
-        massSendContract = new ethers.Contract(massSend.address, massSendData.abi, signers[0]);
-    })
+    async function getTokens(USDT, to, amount) {
+        await hre.network.provider.request({
+                method: 'hardhat_impersonateAccount',
+                params: [moneyBoss],
+            }
+        );
+        const signer = await ethers.provider.getSigner(moneyBoss);
+        await USDT.connect(signer).transfer(to, amount);
+    }
 
+    async function initContractsAndGetTokens() {
+        const { USDT, massSend } = await initContracts();
+
+        await getTokens(USDT, massSend.address, 100);
+
+        return { USDT, massSend };
+    };
 
     it('Our USDT balance > 100', async () => {
-        let myBalance = await USDTContract.balanceOf(moneyBoss);
+        const { USDT } = await loadFixture(initContracts);
+        const myBalance = await USDT.balanceOf(moneyBoss);
         expect(myBalance).to.be.above(100);
-    })
+    });
 
 
-    it("massSend contract's USDT balance is 0", async () => {
-        let massSendBalance = await USDTContract.balanceOf(massSendContract.address);
+    it('massSend contract\'s USDT balance is 0', async () => {
+        const { USDT, massSend } = await loadFixture(initContracts);
+        const massSendBalance = await USDT.balanceOf(massSend.address);
         expect(massSendBalance).eq(0);
-    })
+    });
 
 
-    it('Transfer USDT to massSend contract', async function() {
-        await hre.network.provider.request({
-            method: "hardhat_impersonateAccount",
-            params: [moneyBoss]}
-        )
-        const signer = await ethers.provider.getSigner(moneyBoss)
-        await USDTContract.connect(signer).transfer(massSendContract.address, 100);
-        let massSendBalance = await USDTContract.balanceOf(massSendContract.address);
+    it('Transfer USDT to massSend contract', async () => {
+        const { USDT, massSend } = await loadFixture(initContracts);
+
+        await getTokens(USDT, massSend.address, 100);
+
+        const massSendBalance = await USDT.balanceOf(massSend.address);
         expect(massSendBalance).eq(100);
-    })
+    });
 
 
-    it("Transfer USDT tokens via massSend contract", async () => {
-        let receiver1Balance = await USDTContract.balanceOf(receiver1);
-        let receiver2Balance = await USDTContract.balanceOf(receiver2);
-        await massSendContract.send([receiver1, receiver2], [10,10], USDTContract.address);
-        expect((await USDTContract.balanceOf(receiver1)).toNumber(), receiver1Balance + 10)
-        expect((await USDTContract.balanceOf(receiver2)).toNumber(), receiver2Balance + 10)
-        expect((await USDTContract.balanceOf(massSendContract.address)).toNumber()).eq(80);
-    })
+    it('Transfer USDT tokens via massSend contract', async () => {
+        const { USDT, massSend } = await loadFixture(initContractsAndGetTokens);
+
+        const tx = await massSend.send([receiver1, receiver2], [10, 10], USDT.address);
+
+        await expect(tx).to.changeTokenBalances(
+            USDT,
+            [receiver1, receiver2, massSend],
+            [10, 10, -20],
+        );
+    });
 
 
-    it("Revert, if call send function in massSend not owner", async () => {
-        await expect(massSendContract.connect(signers[1]).send([moneyBoss, moneyBoss], [10,10], USDTContract.address)).to.be.reverted;
-    })
+    it('Revert, if call send function in massSend not owner', async () => {
+        const { USDT, massSend } = await loadFixture(initContractsAndGetTokens);
+        await expect(massSend.connect(signer1).send([moneyBoss, moneyBoss], [10,10], USDT.address)).to.be.reverted;
+    });
 
 
-    it("No one can change the address except the owner", async () => {
-        await expect(massSendContract.connect(signers[1]).setOwner(signers[1])).to.be.reverted;
-    })
+    it('No one can change the address except the owner', async () => {
+        const { massSend } = await loadFixture(initContracts);
+        await expect(massSend.connect(signer1).setOwner(signer1.address)).to.be.revertedWithCustomError(massSend, 'OnlyOwner');
+    });
 
 
-    it("Owner can change owner address", async () => {
-        await massSendContract.setOwner(moneyBoss);
-        expect((await massSendContract.owner()).toUpperCase()).eq(moneyBoss.toUpperCase())
-    })
+    it('Owner can change owner address', async () => {
+        const { massSend } = await loadFixture(initContracts);
+        await massSend.setOwner(moneyBoss);
+        expect((await massSend.owner()).toUpperCase()).eq(moneyBoss.toUpperCase())
+    });
 
+    describe('Compare gas cost', () => {
+        let oneTransferCostToNewestAddress, oneTransferCostToUsedAddress;
+
+        before(async () => {
+            const { USDT } = await loadFixture(initContractsAndGetTokens);
+            await getTokens(USDT, signer1.address, 100);
+            const tx = await USDT.connect(signer1).transfer(receiver3, 10);
+            oneTransferCostToNewestAddress = await logGasCost('send to single newest addresses gasUsed(one):', tx);
+            const tx2 = await USDT.connect(signer1).transfer(receiver3, 10);
+            oneTransferCostToUsedAddress = await logGasCost('send to single addresses gasUsed(one):', tx2);
+        });
+
+        it('Compare gas cost for transfer to 2 new addresses', async () => {
+            const { USDT, massSend } = await loadFixture(initContractsAndGetTokens);
+
+            const tx = await massSend.send([receiver1, receiver2], [10, 10], USDT.address);
+            const gasUsed = await logGasCost('multisend to 2 newest addresses gasUsed:', tx);
+
+            console.log('gasUsedSeparateTransfers:', oneTransferCostToNewestAddress * 2n);
+
+            const diff = oneTransferCostToNewestAddress * 2n - gasUsed;
+            console.log('gas diff:', diff);
+            console.log('percentage:', diff * 100n / 2n / oneTransferCostToNewestAddress);
+        });
+
+        it('Compare gas cost for transfer to 4 new addresses', async () => {
+            const { USDT, massSend } = await loadFixture(initContractsAndGetTokens);
+
+            const tx = await massSend.send([receiver1, receiver2, receiver3, receiver4], [10, 10, 10, 10], USDT.address);
+            const gasUsed = await logGasCost('multisend to 4 newest addresses gasUsed:', tx);
+
+            console.log('gasUsedSeparateTransfers:', oneTransferCostToNewestAddress * 4n);
+
+            const diff = oneTransferCostToNewestAddress * 4n - gasUsed;
+            console.log('gas diff:', diff);
+            console.log('percentage:', diff * 100n / 4n / oneTransferCostToNewestAddress);
+        });
+
+        it('Compare gas cost for transfer to 2 addresses with not-zero amount', async () => {
+            const { USDT, massSend } = await loadFixture(initContractsAndGetTokens);
+            await getTokens(USDT, signer1.address, 100);
+            await massSend.send([receiver1, receiver2], [10, 10], USDT.address);
+
+            const tx1 = await massSend.send([receiver1, receiver2], [10, 10], USDT.address);
+            const gasUsed = await logGasCost('multisend to 2 addresses gasUsed:', tx1);
+
+            console.log('gasUsedSeparateTransfers:', oneTransferCostToUsedAddress * 2n);
+
+            const diff = oneTransferCostToUsedAddress * 2n - gasUsed;
+            console.log('gas diff:', diff);
+            console.log('percentage:', diff * 100n / 2n / oneTransferCostToUsedAddress);
+        });
+
+        it('Compare gas cost for transfer to 4 addresses with not-zero amount', async () => {
+            const { USDT, massSend } = await loadFixture(initContractsAndGetTokens);
+            await massSend.send([receiver1, receiver2, receiver3, receiver4], [10, 10, 10, 10], USDT.address);
+
+            const tx1 = await massSend.send([receiver1, receiver2, receiver3, receiver4], [10, 10, 10, 10], USDT.address);
+            const gasUsed = await logGasCost('multisend to 4 addresses gasUsed:', tx1);
+
+            console.log('gasUsedSeparateTransfers:', oneTransferCostToUsedAddress * 4n);
+
+            const diff = oneTransferCostToUsedAddress * 4n - gasUsed;
+            console.log('gas diff:', diff);
+            console.log('percentage:', diff * 100n / 4n / oneTransferCostToUsedAddress);
+        });
+    });
 });
-
-
-
-
