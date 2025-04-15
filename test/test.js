@@ -7,13 +7,13 @@ const USDTData = require('./USDT.js');
 
 async function logGasCost(label, tx) {
     const { cumulativeGasUsed } = await tx.wait();
-    console.log(label, cumulativeGasUsed.toBigInt());
-    return cumulativeGasUsed.toBigInt();
+    console.log(label, cumulativeGasUsed);
+    return cumulativeGasUsed;
 };
 
 describe('MassSend', () => {
     let signer0, signer1;
-    const moneyBoss = '0x28C6C06298D514DB089934071355E5743BF21D60';
+    const moneyBoss = '0xF977814e90dA44bFA03b6295A0616a897441aceC';
     const receiver1 = '0xdead00000000000000beaf0000000000000dead1';
     const receiver2 = '0xdead00000000000000beaf0000000000000dead2';
     const receiver3 = '0xdead00000000000000beaf0000000000000dead3';
@@ -28,7 +28,7 @@ describe('MassSend', () => {
 
         const MassSend = await ethers.getContractFactory('MassSend');
         const massSend = await MassSend.deploy();
-        await massSend.deployed();
+        await massSend.waitForDeployment();
 
         return { USDT, massSend };
     };
@@ -46,7 +46,7 @@ describe('MassSend', () => {
     async function initContractsAndGetTokens() {
         const { USDT, massSend } = await initContracts();
 
-        await getTokens(USDT, massSend.address, 100);
+        await getTokens(USDT, massSend.getAddress(), 100);
 
         return { USDT, massSend };
     };
@@ -60,7 +60,7 @@ describe('MassSend', () => {
 
     it('massSend contract\'s USDT balance is 0', async () => {
         const { USDT, massSend } = await loadFixture(initContracts);
-        const massSendBalance = await USDT.balanceOf(massSend.address);
+        const massSendBalance = await USDT.balanceOf(massSend.getAddress());
         expect(massSendBalance).eq(0);
     });
 
@@ -68,9 +68,9 @@ describe('MassSend', () => {
     it('Transfer USDT to massSend contract', async () => {
         const { USDT, massSend } = await loadFixture(initContracts);
 
-        await getTokens(USDT, massSend.address, 100);
+        await getTokens(USDT, massSend.getAddress(), 100);
 
-        const massSendBalance = await USDT.balanceOf(massSend.address);
+        const massSendBalance = await USDT.balanceOf(massSend.getAddress());
         expect(massSendBalance).eq(100);
     });
 
@@ -78,7 +78,7 @@ describe('MassSend', () => {
     it('Transfer USDT tokens via massSend contract', async () => {
         const { USDT, massSend } = await loadFixture(initContractsAndGetTokens);
 
-        const tx = await massSend.send([receiver1, receiver2], [10, 10], USDT.address);
+        const tx = await massSend.send([receiver1, receiver2], [10, 10], USDT.getAddress());
 
         await expect(tx).to.changeTokenBalances(
             USDT,
@@ -90,7 +90,7 @@ describe('MassSend', () => {
 
     it('Revert, if call send function in massSend not owner', async () => {
         const { USDT, massSend } = await loadFixture(initContractsAndGetTokens);
-        await expect(massSend.connect(signer1).send([moneyBoss, moneyBoss], [10,10], USDT.address)).to.be.reverted;
+        await expect(massSend.connect(signer1).send([moneyBoss, moneyBoss], [10,10], USDT.getAddress())).to.be.reverted;
     });
 
 
@@ -121,7 +121,7 @@ describe('MassSend', () => {
         it('Compare gas cost for transfer to 2 new addresses', async () => {
             const { USDT, massSend } = await loadFixture(initContractsAndGetTokens);
 
-            const tx = await massSend.send([receiver1, receiver2], [10, 10], USDT.address);
+            const tx = await massSend.send([receiver1, receiver2], [10, 10], USDT.getAddress());
             const gasUsed = await logGasCost('multisend to 2 newest addresses gasUsed:', tx);
 
             console.log('gasUsedSeparateTransfers:', oneTransferCostToNewestAddress * 2n);
@@ -134,7 +134,7 @@ describe('MassSend', () => {
         it('Compare gas cost for transfer to 4 new addresses', async () => {
             const { USDT, massSend } = await loadFixture(initContractsAndGetTokens);
 
-            const tx = await massSend.send([receiver1, receiver2, receiver3, receiver4], [10, 10, 10, 10], USDT.address);
+            const tx = await massSend.send([receiver1, receiver2, receiver3, receiver4], [10, 10, 10, 10], USDT.getAddress());
             const gasUsed = await logGasCost('multisend to 4 newest addresses gasUsed:', tx);
 
             console.log('gasUsedSeparateTransfers:', oneTransferCostToNewestAddress * 4n);
@@ -147,9 +147,9 @@ describe('MassSend', () => {
         it('Compare gas cost for transfer to 2 addresses with not-zero amount', async () => {
             const { USDT, massSend } = await loadFixture(initContractsAndGetTokens);
             await getTokens(USDT, signer1.address, 100);
-            await massSend.send([receiver1, receiver2], [10, 10], USDT.address);
+            await massSend.send([receiver1, receiver2], [10, 10], USDT.getAddress());
 
-            const tx1 = await massSend.send([receiver1, receiver2], [10, 10], USDT.address);
+            const tx1 = await massSend.send([receiver1, receiver2], [10, 10], USDT.getAddress());
             const gasUsed = await logGasCost('multisend to 2 addresses gasUsed:', tx1);
 
             console.log('gasUsedSeparateTransfers:', oneTransferCostToUsedAddress * 2n);
@@ -161,9 +161,9 @@ describe('MassSend', () => {
 
         it('Compare gas cost for transfer to 4 addresses with not-zero amount', async () => {
             const { USDT, massSend } = await loadFixture(initContractsAndGetTokens);
-            await massSend.send([receiver1, receiver2, receiver3, receiver4], [10, 10, 10, 10], USDT.address);
+            await massSend.send([receiver1, receiver2, receiver3, receiver4], [10, 10, 10, 10], USDT.getAddress());
 
-            const tx1 = await massSend.send([receiver1, receiver2, receiver3, receiver4], [10, 10, 10, 10], USDT.address);
+            const tx1 = await massSend.send([receiver1, receiver2, receiver3, receiver4], [10, 10, 10, 10], USDT.getAddress());
             const gasUsed = await logGasCost('multisend to 4 addresses gasUsed:', tx1);
 
             console.log('gasUsedSeparateTransfers:', oneTransferCostToUsedAddress * 4n);

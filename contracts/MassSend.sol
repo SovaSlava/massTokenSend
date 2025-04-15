@@ -2,19 +2,10 @@
 
 pragma solidity 0.8.19;
 
-import {IERC20} from "./interfaces/IERC20.sol";
 
 contract MassSend {
-    error WrongArraysLength();
-    error OnlyOwner();
-
     address public owner;
-
-    modifier onlyOwner() {
-        if (msg.sender != owner) revert OnlyOwner();
-        _;
-    }
-
+    
     constructor() {
         owner = msg.sender;
     }
@@ -23,16 +14,25 @@ contract MassSend {
         address[] calldata _receivers,
         uint256[] calldata _amounts,
         address _token
-    ) external onlyOwner {
-        if (_receivers.length != _amounts.length) revert WrongArraysLength();
-
-        bytes4 selector = IERC20.transfer.selector;
-        /// @solidity memory-safe-assembly
+    ) external  {
         assembly {
           let data := mload(0x40)
-          mstore(data, selector)
+
+          // onlyOwner
+          if iszero(eq(caller(), sload(0))) {
+            mstore(0x0, 0x5fc483c500000000000000000000000000000000000000000000000000000000)
+            revert(0x0,4)
+          }
+          // receiver'slength is equal to amount's length
+          let receiversLength := _receivers.length
+          if iszero(eq(receiversLength, _amounts.length)) {
+            mstore(0x0, 0x4f32285a00000000000000000000000000000000000000000000000000000000) // error WrongArraysLength()
+            revert(0x0,4)
+          }
+          // send
+          mstore(data, 0xa9059cbb00000000000000000000000000000000000000000000000000000000) // IERC20.transfer.selector
           for {
-            let len := _receivers.length
+            let len := receiversLength
             let i
             let rOffs := _receivers.offset
             let aOffs := _amounts.offset
@@ -57,7 +57,14 @@ contract MassSend {
         }
     }
 
-    function setOwner(address _owner) external onlyOwner {
-        owner = _owner;
+error OnlyOwner();  
+    function setOwner(address _owner) external {
+      assembly {
+        if iszero(eq(caller(), sload(0))) {
+          mstore(0x0, 0x5fc483c500000000000000000000000000000000000000000000000000000000)
+          revert(0x0,4)
+        }
+      sstore(0, _owner)
+      }     
     }
 }
